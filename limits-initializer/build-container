@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "Compiling..."
+./build
+echo "Making container"
+docker build -t limits-initializer:0.0.1 .
+rm limits-initializer
+echo "Restarting pod"
+kubectl delete pod -l app=limits-initializer
+sleep 3
+kubectl logs $(kubectl get pod -l app=limits-initializer | tail -n 1 | awk '{print $1}') -f

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  initializers:
+    pending: []
+  labels:
+    app: limits-initializer
+  name: limits-initializer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: limits-initializer
+  template:
+    metadata:
+      labels:
+        app: limits-initializer
+      name: limits-initializer
+    spec:
+      containers:
+        - name: limits-initializer
+          image: limits-initializer:0.0.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - "-namespace=limits-enforced"
