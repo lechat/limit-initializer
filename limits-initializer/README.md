@@ -8,11 +8,11 @@ The limits Initializer is a [Kubernetes initializer](https://kubernetes.io/docs/
 limits-initializer -h
 ```
 ```
-Usage of envoy-initializer:
+Usage of limits-initializer:
   -annotation string
     	The annotation to trigger initialization (default "initializer.kubernetes.io/limits")
   -configmap string
-    	The envoy initializer configuration configmap (default "limits-initializer")
+    	The limits initializer configuration configmap (default "limits-initializer")
   -initializer-name string
     	The initializer name (default "limits.initializer.kubernetes.io")
   -namespace string
