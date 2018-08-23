@@ -58,7 +58,7 @@ type config struct {
 
 func main() {
 	flag.StringVar(&annotation, "annotation", defaultAnnotation, "The annotation to trigger initialization")
-	flag.StringVar(&configmap, "configmap", defaultConfigmap, "The envoy initializer configuration configmap")
+	flag.StringVar(&configmap, "configmap", defaultConfigmap, "The limits initializer configuration configmap")
 	flag.StringVar(&initializerName, "initializer-name", defaultInitializerName, "The initializer name")
 	flag.StringVar(&namespace, "namespace", "default", "The configuration namespace")
 	flag.BoolVar(&requireAnnotation, "require-annotation", false, "Require annotation for initialization")
@@ -77,7 +77,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Load the Envoy Initializer configuration from a Kubernetes ConfigMap.
+	// Load the Initializer configuration from a Kubernetes ConfigMap.
 	cm, err := clientset.CoreV1().ConfigMaps(namespace).Get(configmap, metav1.GetOptions{})
 	if err != nil {
 		log.Fatal(err)
@@ -88,9 +88,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Watch uninitialized Deployments in all namespaces.
+	// Watch uninitialized Deployments in specific namespace.
 	restClient := clientset.AppsV1beta2().RESTClient()
-	watchlist := cache.NewListWatchFromClient(restClient, "deployments", corev1.NamespaceAll, fields.Everything())
+	watchlist := cache.NewListWatchFromClient(restClient, "deployments", namespace, fields.Everything())
 
 	// Wrap the returned watchlist to workaround the inability to include
 	// the `IncludeUninitialized` list option when setting up watch clients.
@@ -150,7 +150,7 @@ func initializeDeployment(deployment *v1beta2.Deployment, c *config, clientset *
 				a := deployment.ObjectMeta.GetAnnotations()
 				_, ok := a[annotation]
 				if !ok {
-					log.Printf("Required '%s' annotation missing; skipping envoy container injection", annotation)
+					log.Printf("Required '%s' annotation missing; skipping container injection", annotation)
 					_, err := clientset.AppsV1beta2().Deployments(deployment.Namespace).Update(initializedDeployment)
 					if err != nil {
 						return err
@@ -171,7 +171,7 @@ func initializeDeployment(deployment *v1beta2.Deployment, c *config, clientset *
 				}
 				log.Printf("after resource limits for '%s' container: '%s'", cont.Name, initializedDeployment.Spec.Template.Spec.Containers[i].Resources)
 			}
-			// Modify the Deployment's Pod template to include the Envoy container
+			// Modify the Deployment's Pod template
 			// and configuration volume. Then patch the original deployment.
 			//initializedDeployment.Spec.Template.Spec.Containers = append(deployment.Spec.Template.Spec.Containers, c.Containers...)
 			//initializedDeployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, c.Volumes...)
